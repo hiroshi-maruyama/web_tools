@@ -32,14 +32,14 @@
     #canvasContainer {
       position: relative;
       width: 100%;
-      max-width: 480px;
+      max-width: 360px;
+      height: 640px; /* 16:9 縦長比率 */
       margin: 20px auto;
       overflow: hidden;
-      display: none; /* 初期状態では非表示 */
     }
     canvas {
       width: 100%;
-      height: auto; /* 縦横比を正しく保つ */
+      height: 100%; /* 16:9 縦長比率 */
     }
     #scannerBar {
       position: absolute;
@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>備品番号スキャン (OCR)２</h1>
+  <h1>備品番号スキャン (OCR)</h1>
   <button id="startButton">スキャン開始</button>
   <button id="clearButton">番号をクリア</button>
   <div id="canvasContainer">
@@ -104,24 +104,22 @@
         video.srcObject = stream;
         await video.play();
 
-        // カメラ映像の準備が整ったらCanvasのサイズを設定
-        video.addEventListener('loadedmetadata', () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+        // Canvasのサイズを16:9比率に設定
+        canvas.width = 360; // 幅
+        canvas.height = 640; // 高さ
 
-          // 映像描画を10fpsで更新
-          setInterval(() => {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          }, 1000 / 10); // 10fps
-        });
-
-        // 1.5秒ごとにOCR処理を実行
+        // 映像描画を10fpsで更新
         setInterval(() => {
-          scanForNumbers();
-        }, 1500);
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }, 1000 / 10); // 10fps
       } catch (error) {
         console.error("カメラへのアクセスができません: ", error);
       }
+
+      // 1.5秒ごとにOCR処理を実行
+      setInterval(() => {
+        scanForNumbers();
+      }, 1500);
     }
 
     async function scanForNumbers() {
