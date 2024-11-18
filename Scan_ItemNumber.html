@@ -12,17 +12,25 @@
       margin-top: 10px;
       white-space: pre-line; /* 改行を維持 */
     }
+    button {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>備品番号スキャン (OCR)</h1>
-  <video id="camera" autoplay></video>
+  <button id="startButton">スキャン開始</button>
+  <video id="camera" autoplay style="display: none;"></video>
   <div id="output"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
+    document.getElementById('startButton').addEventListener('click', startCamera);
+
     async function startCamera() {
       const video = document.getElementById('camera');
+      video.style.display = 'block'; // ビデオ要素を表示
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         video.srcObject = stream;
@@ -59,8 +67,6 @@
         }
       }
     }
-
-    window.onload = startCamera;
   </script>
 </body>
 </html>
