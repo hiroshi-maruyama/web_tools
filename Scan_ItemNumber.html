@@ -29,6 +29,7 @@
       height: 360px;
       margin: 20px auto;
       overflow: hidden;
+      display: none; /* 初期状態では非表示 */
     }
     #camera {
       width: 100%;
@@ -43,6 +44,7 @@
       height: 5px;
       background-color: rgba(0, 255, 0, 0.6);
       animation: scanBar 1.5s linear infinite;
+      display: none; /* 初期状態では非表示 */
     }
     @keyframes scanBar {
       0% {
@@ -73,7 +75,10 @@
 
     async function startCamera() {
       const video = document.getElementById('camera');
-      video.style.display = 'block'; // ビデオ要素を表示
+      const scannerBar = document.getElementById('scannerBar');
+      const cameraContainer = document.getElementById('cameraContainer');
+
+      cameraContainer.style.display = 'block'; // カメラコンテナを表示
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -84,7 +89,12 @@
       }
 
       video.addEventListener('loadeddata', () => {
-        setInterval(scanForNumbers, 1500); // 1.5秒ごとにOCR処理
+        scannerBar.style.display = 'block'; // OCR中にバーを表示
+        setInterval(() => {
+          scanForNumbers().then(() => {
+            scannerBar.style.display = 'none'; // OCR処理が完了したらバーを非表示
+          });
+        }, 1500);
       });
 
       async function scanForNumbers() {
