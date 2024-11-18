@@ -67,6 +67,8 @@
 </head>
 <body>
   <h1>備品番号スキャン (OCR)</h1>
+  <input type="text" id="nameInput" placeholder="氏名を入力" />
+  <input type="text" id="roomInput" placeholder="部屋名を入力" /><br><br>
   <button id="startButton">スキャン開始</button>
   <button id="clearButton">番号をクリア</button>
   <div id="canvasContainer">
@@ -82,11 +84,13 @@
     const scannerBar = document.getElementById('scannerBar');
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
+    const nameInput = document.getElementById('nameInput');
+    const roomInput = document.getElementById('roomInput');
     let video;
 
     // 初期表示でlocalStorageから番号を読み込む
-    detectedNumbers.forEach(number => {
-      output.textContent += number + '\n';
+    detectedNumbers.forEach(entry => {
+      output.textContent += entry + '\n';
     });
 
     document.getElementById('startButton').addEventListener('click', startCamera);
@@ -147,10 +151,18 @@
 
         matchedNumbers.forEach(number => {
           if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
+            const name = nameInput.value.trim();
+            const room = roomInput.value.trim();
+            if (!name || !room) {
+              alert("氏名と部屋名を入力してください。");
+              return;
+            }
+
             const confirmRegistration = confirm(`新しい番号 ${number} を登録しますか？`);
             if (confirmRegistration) {
-              detectedNumbers.add(number); // 番号をセットに追加
-              output.textContent += number + '\n'; // 11桁の数字を追記
+              const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${number}`;
+              detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
+              output.textContent += entry + '\n'; // 情報を追記
               localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
               showAnimation(); // アニメーションを表示
             }
