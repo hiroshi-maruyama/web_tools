@@ -32,7 +32,7 @@
     #canvasContainer {
       position: relative;
       width: 100%;
-      max-width: 640px;
+      max-width: 480px;
       margin: 20px auto;
       overflow: hidden;
       display: none; /* 初期状態では非表示 */
@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>備品番号スキャン (OCR)</h1>
+  <h1>備品番号スキャン (OCR)２</h1>
   <button id="startButton">スキャン開始</button>
   <button id="clearButton">番号をクリア</button>
   <div id="canvasContainer">
@@ -106,16 +106,12 @@
 
         // カメラ映像の準備が整ったらCanvasのサイズを設定
         video.addEventListener('loadedmetadata', () => {
-          const size = Math.min(video.videoWidth, video.videoHeight);
-          canvas.width = size;
-          canvas.height = size;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
 
           // 映像描画を10fpsで更新
           setInterval(() => {
-            // 縦長映像の中央部分を正方形に切り出して描画
-            const x = (video.videoWidth - size) / 2;
-            const y = (video.videoHeight - size) / 2;
-            context.drawImage(video, x, y, size, size, 0, 0, canvas.width, canvas.height);
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
           }, 1000 / 10); // 10fps
         });
 
@@ -157,10 +153,7 @@
 
       function animate() {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        const size = Math.min(video.videoWidth, video.videoHeight);
-        const x = (video.videoWidth - size) / 2;
-        const y = (video.videoHeight - size) / 2;
-        context.drawImage(video, x, y, size, size, 0, 0, canvas.width, canvas.height);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         // アニメーションのエフェクト（円の拡大）
         const radius = (animationFrame / maxFrames) * canvas.width * 0.5;
