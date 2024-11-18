@@ -48,7 +48,7 @@
       width: 100%;
       height: 5px;
       background-color: rgba(0, 255, 0, 0.6);
-      animation: scanBar 1.5s linear infinite;
+      animation: scanBar 1s linear infinite;
       display: none; /* 初期状態では非表示 */
     }
     @keyframes scanBar {
@@ -116,10 +116,10 @@
         console.error("カメラへのアクセスができません: ", error);
       }
 
-      // 1.5秒ごとにOCR処理を実行
+      // 1秒ごとにOCR処理を実行
       setInterval(() => {
         scanForNumbers();
-      }, 1500);
+      }, 1000);
     }
 
     async function scanForNumbers() {
@@ -133,16 +133,32 @@
       // 認識されたテキストから11桁の数字を抽出
       const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
       if (matchedNumbers) {
+        playSound(); // 11桁の数字を検出した時点で音を鳴らす
+
         matchedNumbers.forEach(number => {
           if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
-            detectedNumbers.add(number); // 番号をセットに追加
-            output.textContent += number + '\n'; // 11桁の数字を追記
-            localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
-            playSound(); // 音を鳴らす
-            showAnimation(); // アニメーションを表示
+            const confirmRegistration = confirm(`新しい番号 ${number} を登録しますか？`);
+            if (confirmRegistration) {
+              detectedNumbers.add(number); // 番号をセットに追加
+              output.textContent += number + '\n'; // 11桁の数字を追記
+              localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+              showAnimation(); // アニメーションを表示
+            }
           }
         });
       }
+    }
+
+    function playSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine'; // 波形の種類（sine, square, triangle, sawtooth など）
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 周波数（Hz）
+      oscillator.connect(audioContext.destination);
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+      }, 200); // 200ms間音を鳴らす
     }
 
     function showAnimation() {
@@ -168,18 +184,6 @@
       }
 
       animate();
-    }
-
-    function playSound() {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      oscillator.type = 'sine'; // 波形の種類（sine, square, triangle, sawtooth など）
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 周波数（Hz）
-      oscillator.connect(audioContext.destination);
-      oscillator.start();
-      setTimeout(() => {
-        oscillator.stop();
-      }, 200); // 200ms間音を鳴らす
     }
 
     function clearNumbers() {
