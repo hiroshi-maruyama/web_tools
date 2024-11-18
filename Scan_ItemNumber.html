@@ -33,14 +33,13 @@
       position: relative;
       width: 100%;
       max-width: 640px;
-      height: 360px;
       margin: 20px auto;
       overflow: hidden;
       display: none; /* 初期状態では非表示 */
     }
     canvas {
       width: 100%;
-      height: 100%;
+      height: auto; /* 縦横比を正しく保つ */
     }
     #scannerBar {
       position: absolute;
@@ -101,15 +100,19 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         video.srcObject = stream;
-        video.play();
+        await video.play();
+
+        // 縦横比を維持してCanvasのサイズを調整
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
       } catch (error) {
         console.error("カメラへのアクセスができません: ", error);
         return;
       }
 
       video.addEventListener('loadeddata', () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
         scannerBar.style.display = 'block'; // OCR中にバーを表示
 
         // 映像描画を10fpsで更新
@@ -139,6 +142,7 @@
               detectedNumbers.add(number); // 番号をセットに追加
               output.textContent += number + '\n'; // 11桁の数字を追記
               localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+              playSound(); // 音を鳴らす
               showAnimation(); // アニメーションを表示
             }
           });
@@ -168,6 +172,18 @@
         }
 
         animate();
+      }
+
+      function playSound() {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = 'sine'; // 波形の種類（sine, square, triangle, sawtooth など）
+        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 周波数（Hz）
+        oscillator.connect(audioContext.destination);
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+        }, 200); // 200ms間音を鳴らす
       }
     }
 
