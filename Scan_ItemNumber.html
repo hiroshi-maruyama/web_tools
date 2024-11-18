@@ -10,7 +10,7 @@
       margin: 0;
       padding: 20px;
     }
-    #startButton {
+    #startButton, #clearButton {
       padding: 15px 30px;
       font-size: 18px;
       background-color: #007BFF;
@@ -18,9 +18,16 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin: 5px;
+    }
+    #clearButton {
+      background-color: #FF4B4B;
     }
     #startButton:hover {
       background-color: #0056b3;
+    }
+    #clearButton:hover {
+      background-color: #cc0000;
     }
     #canvasContainer {
       position: relative;
@@ -62,6 +69,7 @@
 <body>
   <h1>備品番号スキャン (OCR)</h1>
   <button id="startButton">スキャン開始</button>
+  <button id="clearButton">番号をクリア</button>
   <div id="canvasContainer">
     <canvas id="canvas"></canvas>
     <div id="scannerBar"></div>
@@ -70,9 +78,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
-    const detectedNumbers = new Set(); // 検出された番号を記録するセット
+    const detectedNumbers = new Set(JSON.parse(localStorage.getItem('detectedNumbers')) || []);
+    const output = document.getElementById('output');
+
+    // 初期表示でlocalStorageから番号を読み込む
+    detectedNumbers.forEach(number => {
+      output.textContent += number + '\n';
+    });
 
     document.getElementById('startButton').addEventListener('click', startCamera);
+    document.getElementById('clearButton').addEventListener('click', clearNumbers);
 
     async function startCamera() {
       const canvas = document.getElementById('canvas');
@@ -119,14 +134,12 @@
         // 認識されたテキストから11桁の数字を抽出
         const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
         if (matchedNumbers) {
-          const output = document.getElementById('output');
           matchedNumbers.forEach(number => {
             if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
               detectedNumbers.add(number); // 番号をセットに追加
               output.textContent += number + '\n'; // 11桁の数字を追記
-
-              // アニメーションを表示
-              showAnimation();
+              localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+              showAnimation(); // アニメーションを表示
             }
           });
         }
@@ -155,6 +168,14 @@
         }
 
         animate();
+      }
+    }
+
+    function clearNumbers() {
+      if (confirm("本当にすべての番号をクリアしますか？")) {
+        detectedNumbers.clear(); // Setをクリア
+        localStorage.removeItem('detectedNumbers'); // localStorageから削除
+        output.textContent = ''; // 表示をクリア
       }
     }
   </script>
