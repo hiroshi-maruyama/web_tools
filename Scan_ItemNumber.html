@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>備品番号スキャン (OCR)2</h1>
+  <h1>備品番号スキャン (OCR)3</h1>
   <button id="startButton">スキャン開始</button>
   <button id="clearButton">番号をクリア</button>
   <div id="canvasContainer">
@@ -79,6 +79,10 @@
   <script>
     const detectedNumbers = new Set(JSON.parse(localStorage.getItem('detectedNumbers')) || []);
     const output = document.getElementById('output');
+    const scannerBar = document.getElementById('scannerBar');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    let video;
 
     // 初期表示でlocalStorageから番号を読み込む
     detectedNumbers.forEach(number => {
@@ -89,13 +93,11 @@
     document.getElementById('clearButton').addEventListener('click', clearNumbers);
 
     async function startCamera() {
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      const scannerBar = document.getElementById('scannerBar');
       const canvasContainer = document.getElementById('canvasContainer');
-      const video = document.createElement('video');
+      video = document.createElement('video');
 
       canvasContainer.style.display = 'block'; // Canvasコンテナを表示
+      scannerBar.style.display = 'block'; // ScanBarを表示
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -123,7 +125,6 @@
     }
 
     async function scanForNumbers() {
-      const canvas = document.getElementById('canvas');
       const imageData = canvas.toDataURL('image/png');
 
       // Tesseract.jsを使用してOCRを実行
@@ -147,8 +148,6 @@
     }
 
     function showAnimation() {
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
       let animationFrame = 0;
       const maxFrames = 30; // アニメーションのフレーム数
 
