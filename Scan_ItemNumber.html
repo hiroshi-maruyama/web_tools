@@ -102,18 +102,11 @@
         video.srcObject = stream;
         await video.play();
 
-        // 縦横比を維持してCanvasのサイズを調整
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
-      } catch (error) {
-        console.error("カメラへのアクセスができません: ", error);
-        return;
-      }
-
-      video.addEventListener('loadeddata', () => {
-        scannerBar.style.display = 'block'; // OCR中にバーを表示
+        // カメラ映像の準備が整ったらCanvasのサイズを設定
+        video.addEventListener('loadedmetadata', () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        });
 
         // 映像描画を10fpsで更新
         setInterval(() => {
@@ -124,67 +117,72 @@
         setInterval(() => {
           scanForNumbers();
         }, 1500);
+      } catch (error) {
+        console.error("カメラへのアクセスができません: ", error);
+      }
+    }
+
+    async function scanForNumbers() {
+      const canvas = document.getElementById('canvas');
+      const imageData = canvas.toDataURL('image/png');
+
+      // Tesseract.jsを使用してOCRを実行
+      const result = await Tesseract.recognize(imageData, 'eng', {
+        tessedit_char_whitelist: '0123456789', // 数字のみを抽出
       });
 
-      async function scanForNumbers() {
-        const imageData = canvas.toDataURL('image/png');
-
-        // Tesseract.jsを使用してOCRを実行
-        const result = await Tesseract.recognize(imageData, 'eng', {
-          tessedit_char_whitelist: '0123456789', // 数字のみを抽出
-        });
-
-        // 認識されたテキストから11桁の数字を抽出
-        const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
-        if (matchedNumbers) {
-          matchedNumbers.forEach(number => {
-            if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
-              detectedNumbers.add(number); // 番号をセットに追加
-              output.textContent += number + '\n'; // 11桁の数字を追記
-              localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
-              playSound(); // 音を鳴らす
-              showAnimation(); // アニメーションを表示
-            }
-          });
-        }
-      }
-
-      function showAnimation() {
-        let animationFrame = 0;
-        const maxFrames = 30; // アニメーションのフレーム数
-
-        function animate() {
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-          // アニメーションのエフェクト（円の拡大）
-          const radius = (animationFrame / maxFrames) * canvas.width * 0.5;
-          context.beginPath();
-          context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
-          context.strokeStyle = 'rgba(0, 255, 0, 0.8)';
-          context.lineWidth = 5;
-          context.stroke();
-
-          animationFrame++;
-          if (animationFrame < maxFrames) {
-            requestAnimationFrame(animate);
+      // 認識されたテキストから11桁の数字を抽出
+      const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
+      if (matchedNumbers) {
+        matchedNumbers.forEach(number => {
+          if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
+            detectedNumbers.add(number); // 番号をセットに追加
+            output.textContent += number + '\n'; // 11桁の数字を追記
+            localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+            playSound(); // 音を鳴らす
+            showAnimation(); // アニメーションを表示
           }
+        });
+      }
+    }
+
+    function showAnimation() {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      let animationFrame = 0;
+      const maxFrames = 30; // アニメーションのフレーム数
+
+      function animate() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // アニメーションのエフェクト（円の拡大）
+        const radius = (animationFrame / maxFrames) * canvas.width * 0.5;
+        context.beginPath();
+        context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+        context.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+        context.lineWidth = 5;
+        context.stroke();
+
+        animationFrame++;
+        if (animationFrame < maxFrames) {
+          requestAnimationFrame(animate);
         }
-
-        animate();
       }
 
-      function playSound() {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        oscillator.type = 'sine'; // 波形の種類（sine, square, triangle, sawtooth など）
-        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 周波数（Hz）
-        oscillator.connect(audioContext.destination);
-        oscillator.start();
-        setTimeout(() => {
-          oscillator.stop();
-        }, 200); // 200ms間音を鳴らす
-      }
+      animate();
+    }
+
+    function playSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine'; // 波形の種類（sine, square, triangle, sawtooth など）
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 周波数（Hz）
+      oscillator.connect(audioContext.destination);
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+      }, 200); // 200ms間音を鳴らす
     }
 
     function clearNumbers() {
