@@ -8,10 +8,9 @@
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
-      padding: 0;
+      padding: 20px;
     }
     #startButton {
-      margin-top: 20px;
       padding: 15px 30px;
       font-size: 18px;
       background-color: #007BFF;
@@ -27,11 +26,14 @@
       position: relative;
       width: 100%;
       max-width: 640px;
+      height: 360px;
       margin: 20px auto;
+      overflow: hidden;
     }
     #camera {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
     }
     #scannerBar {
       position: absolute;
@@ -71,7 +73,6 @@
 
     async function startCamera() {
       const video = document.getElementById('camera');
-      const scannerBar = document.getElementById('scannerBar');
       video.style.display = 'block'; // ビデオ要素を表示
 
       try {
