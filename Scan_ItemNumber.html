@@ -95,11 +95,14 @@
         canvas.height = video.videoHeight;
         scannerBar.style.display = 'block'; // OCR中にバーを表示
 
+        // 映像描画を10fpsで更新
         setInterval(() => {
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          scanForNumbers().then(() => {
-            scannerBar.style.display = 'none'; // OCR処理が完了したらバーを非表示
-          });
+        }, 1000 / 10); // 10fps
+
+        // 1.5秒ごとにOCR処理を実行
+        setInterval(() => {
+          scanForNumbers();
         }, 1500);
       });
 
