@@ -70,6 +70,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
+    const detectedNumbers = new Set(); // 検出された番号を記録するセット
+
     document.getElementById('startButton').addEventListener('click', startCamera);
 
     async function startCamera() {
@@ -119,7 +121,10 @@
         if (matchedNumbers) {
           const output = document.getElementById('output');
           matchedNumbers.forEach(number => {
-            output.textContent += number + '\n'; // 11桁の数字を追記
+            if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
+              detectedNumbers.add(number); // 番号をセットに追加
+              output.textContent += number + '\n'; // 11桁の数字を追記
+            }
           });
         }
       }
