@@ -124,7 +124,7 @@
             data[i + 1] = avg; // 緑チャンネル
             data[i + 2] = avg; // 青チャンネル
           }
-          context.putImageData(imageData, 0, 0);
+          context.putImageData(imageData, 0, 0); // グレースケール画像をCanvasに描画
         }, 1000 / 10); // 10fps
       } catch (error) {
         console.error("カメラへのアクセスができません: ", error);
