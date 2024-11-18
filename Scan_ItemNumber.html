@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>備品番号スキャン (OCR)4</h1>
+  <h1>備品番号スキャン (OCR)</h1>
   <button id="startButton">スキャン開始</button>
   <button id="clearButton">番号をクリア</button>
   <div id="canvasContainer">
@@ -106,13 +106,13 @@
 
         // カメラ映像の準備が整ったらCanvasのサイズを設定
         video.addEventListener('loadedmetadata', () => {
-          canvas.width = video.videoWidth > video.videoHeight ? video.videoHeight : video.videoWidth;
-          canvas.height = canvas.width; // 正方形のCanvas
+          const size = Math.min(video.videoWidth, video.videoHeight);
+          canvas.width = size;
+          canvas.height = size;
 
           // 映像描画を10fpsで更新
           setInterval(() => {
             // 縦長映像の中央部分を正方形に切り出して描画
-            const size = canvas.width;
             const x = (video.videoWidth - size) / 2;
             const y = (video.videoHeight - size) / 2;
             context.drawImage(video, x, y, size, size, 0, 0, canvas.width, canvas.height);
@@ -157,7 +157,7 @@
 
       function animate() {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        const size = canvas.width;
+        const size = Math.min(video.videoWidth, video.videoHeight);
         const x = (video.videoWidth - size) / 2;
         const y = (video.videoHeight - size) / 2;
         context.drawImage(video, x, y, size, size, 0, 0, canvas.width, canvas.height);
