@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>備品番号スキャン (OCR)</title>
+  <style>
+    video {
+      width: 100%;
+      height: auto;
+    }
+    #output {
+      margin-top: 10px;
+      white-space: pre-line; /* 改行を維持 */
+    }
+  </style>
+</head>
+<body>
+  <h1>備品番号スキャン (OCR)</h1>
+  <video id="camera" autoplay></video>
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+  <script>
+    async function startCamera() {
+      const video = document.getElementById('camera');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+      } catch (error) {
+        console.error("カメラへのアクセスができません: ", error);
+        return;
+      }
+
+      video.addEventListener('loadeddata', () => {
+        setInterval(scanForNumbers, 1500); // 1.5秒ごとにOCR処理
+      });
+
+      async function scanForNumbers() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/png');
+
+        // Tesseract.jsを使用してOCRを実行
+        const result = await Tesseract.recognize(imageData, 'eng', {
+          tessedit_char_whitelist: '0123456789', // 数字のみを抽出
+        });
+
+        // 認識されたテキストから11桁の数字を抽出
+        const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
+        if (matchedNumbers) {
+          const output = document.getElementById('output');
+          matchedNumbers.forEach(number => {
+            output.textContent += number + '\n'; // 11桁の数字を追記
+          });
+        }
+      }
+    }
+
+    window.onload = startCamera;
+  </script>
+</body>
+</html>
