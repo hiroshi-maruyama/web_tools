@@ -4,23 +4,41 @@
   <meta charset="UTF-8">
   <title>備品番号スキャン (OCR)</title>
   <style>
-    video {
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #startButton {
+      margin-top: 20px;
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #startButton:hover {
+      background-color: #0056b3;
+    }
+    #camera {
       width: 100%;
       height: auto;
+      display: none;
+      margin-top: 20px;
     }
     #output {
-      margin-top: 10px;
+      margin-top: 20px;
       white-space: pre-line; /* 改行を維持 */
-    }
-    button {
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <h1>備品番号スキャン (OCR)</h1>
   <button id="startButton">スキャン開始</button>
-  <video id="camera" autoplay style="display: none;"></video>
+  <video id="camera" autoplay></video>
   <div id="output"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
