@@ -124,9 +124,37 @@
             if (!detectedNumbers.has(number)) { // 重複していない場合のみ追加
               detectedNumbers.add(number); // 番号をセットに追加
               output.textContent += number + '\n'; // 11桁の数字を追記
+
+              // アニメーションを表示
+              showAnimation();
             }
           });
         }
+      }
+
+      function showAnimation() {
+        let animationFrame = 0;
+        const maxFrames = 30; // アニメーションのフレーム数
+
+        function animate() {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // アニメーションのエフェクト（円の拡大）
+          const radius = (animationFrame / maxFrames) * canvas.width * 0.5;
+          context.beginPath();
+          context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+          context.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+          context.lineWidth = 5;
+          context.stroke();
+
+          animationFrame++;
+          if (animationFrame < maxFrames) {
+            requestAnimationFrame(animate);
+          }
+        }
+
+        animate();
       }
     }
   </script>
