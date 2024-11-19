@@ -161,6 +161,7 @@
 
         // 1秒ごとにOCR処理を実行
         setInterval(async () => {
+          if(is_Scanning){ return; }
           showToast('1秒ごとにOCR処理を実行');
           const number = await scanForNumbers();
           if (number) {
