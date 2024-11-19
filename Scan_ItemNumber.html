@@ -86,7 +86,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
-    const storedData = new Set(JSON.parse(localStorage.getItem('storedData')) || []);
+    const storedData = JSON.parse(localStorage.getItem('storedData')) || [];
     const detectedNumbers = new Set(storedData.map(item => item.number));
     
     const output = document.getElementById('output');
@@ -213,7 +213,7 @@ async function performMultiScan(initialNumber) {
       localStorage.setItem('room', room);
 
       const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${mostFrequentNumber}`;
-      storedData.add(entry); // 氏名、部屋名、番号をセットに追加
+      storedData.push(entry); // 氏名、部屋名、番号をセットに追加
       detectedNumbers.add(mostFrequentNumber);
       output.textContent += entry + '\n'; // 情報を追記
       localStorage.setItem('storedData', JSON.stringify([...storedData])); // localStorageに保存
