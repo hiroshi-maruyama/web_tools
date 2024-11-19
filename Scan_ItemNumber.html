@@ -200,26 +200,24 @@ async function performMultiScan(initialNumber) {
 
   // 6回以上同じ番号が検出された場合のみ記録
   if (count >= 3 && mostFrequentNumber) {
-    if (!detectedNumbers.has(mostFrequentNumber)) { // 重複していない場合のみ記録
-      const name = nameInput.value.trim();
-      const room = roomInput.value.trim();
-      if (!name || !room) {
-        alert("氏名と部屋名を入力してください。");
-        return;
-      }
-
-      // 氏名と部屋名をlocalStorageに保存
-      localStorage.setItem('name', name);
-      localStorage.setItem('room', room);
-
-      const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${mostFrequentNumber}`;
-      storedData.push(entry); // 氏名、部屋名、番号をセットに追加
-      detectedNumbers.add(mostFrequentNumber);
-      output.textContent += entry + '\n'; // 情報を追記
-      localStorage.setItem('storedData', JSON.stringify([...storedData])); // localStorageに保存
-      playSound(); // 音を鳴らす
+    const name = nameInput.value.trim();
+    const room = roomInput.value.trim();
+    if (!name || !room) {
+      alert("氏名と部屋名を入力してください。");
       return;
     }
+
+    // 氏名と部屋名をlocalStorageに保存
+    localStorage.setItem('name', name);
+    localStorage.setItem('room', room);
+
+    const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${mostFrequentNumber}`;
+    storedData.push(entry); // 氏名、部屋名、番号をセットに追加
+    detectedNumbers.add(mostFrequentNumber);
+    output.textContent += entry + '\n'; // 情報を追記
+    localStorage.setItem('storedData', JSON.stringify([...storedData])); // localStorageに保存
+    playSound(); // 音を鳴らす
+    return;
   }
 
   alert("スキャン結果がバラバラでした。");
@@ -235,6 +233,7 @@ async function scanForNumbers() {
 
   // 認識されたテキストから11桁の数字を抽出
   const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
+  // 重複していない場合のみ返す
   if (!detectedNumbers.has(matchedNumbers)) {
     return matchedNumbers[0]; // 最初の11桁の数字を返す
   }
