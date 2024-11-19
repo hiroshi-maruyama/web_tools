@@ -284,6 +284,59 @@ nameInput.addEventListener('change', () => {
 roomInput.addEventListener('change', () => {
   localStorage.setItem('room', roomInput.value.trim());
 });
+
+function sendToSpreadsheet() {
+  const formattedDate = getFormattedDateInJST();
+
+  // detectedNumbersからデータを整形
+  const dataArray = Array.from(detectedNumbers).map(entry => {
+    const [name, room, number] = entry.match(/氏名: (.*), 部屋名: (.*), 番号: (\d{11})/).slice(1);
+    return { number, room, date: formattedDate, name };
+  });
+
+  const data = {
+    data: dataArray
+  };
+
+  // クエリパラメータからWEB_APP_URLを取得
+  const urlParams = new URLSearchParams(window.location.search);
+  const webAppUrl = urlParams.get('WEB_APP_URL');
+
+  if (!webAppUrl) {
+    alert("WEB_APP_URLパラメータが見つかりません");
+    return;
+  }
+
+  // Fetch APIを使用してデータを送信
+  fetch(webAppUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(responseData => {
+    console.log("送信成功:", responseData);
+    alert("データが正常に送信されました");
+  })
+  .catch(error => {
+    console.error("送信エラー:", error);
+    alert("データの送信中にエラーが発生しました");
+  });
+}
+function getFormattedDateInJST() {
+  const date = new Date();
+  // UTC時間に9時間（JSTのオフセット）を加算
+  date.setHours(date.getHours() + 9);
+
+  // yyyy-mm-dd形式にフォーマット
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0始まりなので+1
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
   </script>
 </body>
 </html>
