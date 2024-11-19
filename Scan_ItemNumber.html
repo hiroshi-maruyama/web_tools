@@ -306,6 +306,7 @@ function sendToSpreadsheet() {
     alert("WEB_APP_URLパラメータが見つかりません");
     return;
   }
+  alert(webAppUrl);
 
   // Fetch APIを使用してデータを送信
   fetch(webAppUrl, {
