@@ -138,66 +138,72 @@
           }
           context.putImageData(imageData, 0, 0); // グレースケール画像をCanvasに描画
         }, 1000 / 10); // 10fps
+
+        // 1秒ごとにOCR処理を実行
+        setInterval(async () => {
+          const number = await scanForNumbers();
+          if (number) {
+            // 数字が検知された場合にのみ0.1秒間隔で5回スキャンを実行
+            performMultiScan(number);
+          }
+        }, 1000);
       } catch (error) {
         console.error("カメラへのアクセスができません: ", error);
       }
     }
 
-    async function performMultiScan() {
-      const scanResults = [];
+async function performMultiScan(initialNumber) {
+  const scanResults = [initialNumber];
 
-      // ScanBarを赤色に変更
-      scannerBar.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
+  // ScanBarを赤色に変更
+  scannerBar.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
 
-      // 0.1秒間隔で5回スキャン
-      for (let i = 0; i < 5; i++) {
-        const result = await scanForNumbers();
-        if (result) {
-          playSound(); // 数字を検知するたびに音を鳴らす
-        }
-        scanResults.push(result);
-        await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒待機
+  // 0.1秒間隔でさらに4回スキャン（合計5回）
+  for (let i = 0; i < 4; i++) {
+    const result = await scanForNumbers();
+    scanResults.push(result);
+    await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒待機
+  }
+
+  // ScanBarを緑色に戻す
+  scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
+
+  // 5回のスキャン結果がすべて同じ場合のみ記録
+  if (scanResults.every(result => result === scanResults[0] && result !== null)) {
+    const number = scanResults[0];
+    if (!detectedNumbers.has(number)) { // 重複していない場合のみ記録
+      const name = nameInput.value.trim();
+      const room = roomInput.value.trim();
+      if (!name || !room) {
+        alert("氏名と部屋名を入力してください。");
+        return;
       }
 
-      // ScanBarを緑色に戻す
-      scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
+      // 氏名と部屋名をlocalStorageに保存
+      localStorage.setItem('name', name);
+      localStorage.setItem('room', room);
 
-      // 5回のスキャン結果がすべて同じ場合のみ記録
-      if (scanResults.every(result => result === scanResults[0] && result !== null)) {
-        const number = scanResults[0];
-        if (!detectedNumbers.has(number)) { // 重複していない場合のみ記録
-          const name = nameInput.value.trim();
-          const room = roomInput.value.trim();
-          if (!name || !room) {
-            alert("氏名と部屋名を入力してください。");
-            return;
-          }
-
-          // 氏名と部屋名をlocalStorageに保存
-          localStorage.setItem('name', name);
-          localStorage.setItem('room', room);
-
-          const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${number}`;
-          detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
-          output.textContent += entry + '\n'; // 情報を追記
-          localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
-          showAnimation(); // アニメーションを表示
-        }
-      }
+      const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${number}`;
+      detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
+      output.textContent += entry + '\n'; // 情報を追記
+      localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+      showAnimation(); // アニメーションを表示
     }
+  }
+}
 
-    async function scanForNumbers() {
-      const imageData = canvas.toDataURL('image/png');
+async function scanForNumbers() {
+  const imageData = canvas.toDataURL('image/png');
 
-      // Tesseract.jsを使用してOCRを実行
-      const result = await Tesseract.recognize(imageData, 'eng', {
-        tessedit_char_whitelist: '0123456789', // 数字のみを抽出
-      });
+  // Tesseract.jsを使用してOCRを実行
+  const result = await Tesseract.recognize(imageData, 'eng', {
+    tessedit_char_whitelist: '0123456789', // 数字のみを抽出
+  });
 
-      // 認識されたテキストから11桁の数字を抽出
-      const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
-      return matchedNumbers ? matchedNumbers[0] : null; // 最初の11桁の数字を返す
-    }
+  // 認識されたテキストから11桁の数字を抽出
+  const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
+  return matchedNumbers ? matchedNumbers[0] : null; // 最初の11桁の数字を返す
+}
 
     function playSound() {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
