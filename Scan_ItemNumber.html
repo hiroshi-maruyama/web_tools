@@ -236,7 +236,6 @@ async function scanForNumbers() {
   // 認識されたテキストから11桁の数字を抽出
   const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
   if (!detectedNumbers.has(matchedNumbers)) {
-    playSound(); // 11桁の数字を検知した場合に音を鳴らす
     return matchedNumbers[0]; // 最初の11桁の数字を返す
   }
   return null; // 数字が検知されなかった場合
