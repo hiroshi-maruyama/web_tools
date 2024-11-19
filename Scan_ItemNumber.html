@@ -86,7 +86,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
-    const detectedNumbers = new Set(JSON.parse(localStorage.getItem('detectedNumbers')) || []);
+    const storedData = new Set(JSON.parse(localStorage.getItem('storedData')) || []);
+    const detectedNumbers = new Set(storedData.map(item => item.number));
+    
     const output = document.getElementById('output');
     const scannerBar = document.getElementById('scannerBar');
     const canvas = document.getElementById('canvas');
@@ -100,7 +102,7 @@
     roomInput.value = localStorage.getItem('room') || '';
 
     // 初期表示でlocalStorageから番号を読み込む
-    detectedNumbers.forEach(entry => {
+    storedData.forEach(entry => {
       output.textContent += entry + '\n';
     });
 
@@ -176,10 +178,10 @@ async function performMultiScan(initialNumber) {
 
   // ScanBarを緑色に戻す
   scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
+  is_Scanning = false;
 
   if (scanResults.length < 5) {
     alert("十分なスキャン結果が得られませんでした。");
-    is_Scanning = false;
     return;
   }
 
@@ -203,7 +205,6 @@ async function performMultiScan(initialNumber) {
       const room = roomInput.value.trim();
       if (!name || !room) {
         alert("氏名と部屋名を入力してください。");
-        is_Scanning = false;
         return;
       }
 
@@ -212,14 +213,15 @@ async function performMultiScan(initialNumber) {
       localStorage.setItem('room', room);
 
       const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${mostFrequentNumber}`;
-      detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
+      storedData.add(entry); // 氏名、部屋名、番号をセットに追加
+      detectedNumbers.add(mostFrequentNumber);
       output.textContent += entry + '\n'; // 情報を追記
-      localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+      localStorage.setItem('storedData', JSON.stringify([...storedData])); // localStorageに保存
       playSound(); // 音を鳴らす
+      return;
     }
   }
 
-  is_Scanning = false;
   alert("スキャン結果がバラバラでした。");
 }
 
@@ -279,8 +281,8 @@ async function scanForNumbers() {
 
     function clearNumbers() {
       if (confirm("本当にすべての番号をクリアしますか？")) {
-        detectedNumbers.clear(); // Setをクリア
-        localStorage.removeItem('detectedNumbers'); // localStorageから削除
+        storedData.clear(); // Setをクリア
+        localStorage.removeItem('storedData'); // localStorageから削除
         output.textContent = ''; // 表示をクリア
       }
     }
@@ -297,8 +299,8 @@ roomInput.addEventListener('change', () => {
 function sendToSpreadsheet() {
   const formattedDate = getFormattedDateInJST();
 
-  // detectedNumbersからデータを整形
-  const dataArray = Array.from(detectedNumbers).map(entry => {
+  // storedDataからデータを整形
+  const dataArray = Array.from(storedData).map(entry => {
     const [name, room, number] = entry.match(/氏名: (.*), 部屋名: (.*), 番号: (\d{11})/).slice(1);
     return { number, room, date: formattedDate, name };
   });
