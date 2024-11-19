@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>備品番号スキャン (OCR)2</h1>
+  <h1>備品番号スキャン (OCR)</h1>
   <input type="text" id="nameInput" placeholder="氏名を入力" />
   <input type="text" id="roomInput" placeholder="部屋名を入力" /><br><br>
   <button id="startButton">スキャン開始</button>
@@ -142,6 +142,9 @@
       // 0.1秒間隔で5回スキャン
       for (let i = 0; i < 5; i++) {
         const result = await scanForNumbers();
+        if (result) {
+          playSound(); // 数字を検知するたびに音を鳴らす
+        }
         scanResults.push(result);
         await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒待機
       }
@@ -161,7 +164,6 @@
           detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
           output.textContent += entry + '\n'; // 情報を追記
           localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
-          playSound(); // 音を鳴らす
           showAnimation(); // アニメーションを表示
         }
       }
