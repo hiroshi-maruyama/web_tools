@@ -53,7 +53,7 @@
       left: 0;
       width: 100%;
       height: 5px;
-      background-color: rgba(0, 255, 0, 0.6);
+      background-color: rgba(0, 255, 0, 0.6); /* 通常は緑色 */
       animation: scanBar 1s linear infinite;
       display: none; /* 初期状態では非表示 */
     }
@@ -94,6 +94,10 @@
     const nameInput = document.getElementById('nameInput');
     const roomInput = document.getElementById('roomInput');
     let video;
+
+    // 氏名と部屋名をlocalStorageから読み込む
+    nameInput.value = localStorage.getItem('name') || '';
+    roomInput.value = localStorage.getItem('room') || '';
 
     // 初期表示でlocalStorageから番号を読み込む
     detectedNumbers.forEach(entry => {
@@ -139,43 +143,97 @@
       }
     }
 
-    function sendToSpreadsheet() {
-      // 日付をyyyy-mm-dd形式に変換
-      const date = new Date();
-      const jstOffset = 9 * 60; // 日本標準時 (JST) のオフセットは9時間（分単位）
-      const jstDate = new Date(date.getTime() + jstOffset * 60 * 1000);
-      const formattedDate = date.toISOString().split('T')[0]; // yyyy-mm-dd形式
+    async function performMultiScan() {
+      const scanResults = [];
 
-      // detectedNumbersからデータを整形
-      const dataArray = Array.from(detectedNumbers).map(entry => {
-        const [name, room, number] = entry.match(/氏名: (.*), 部屋名: (.*), 番号: (\d{11})/).slice(1);
-        return { name, room, number, date: formattedDate };
-      });
+      // ScanBarを赤色に変更
+      scannerBar.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
 
-      const data = {
-        data: dataArray
-      };
-
-      // クエリパラメータからWEB_APP_URLを取得
-      const urlParams = new URLSearchParams(window.location.search);
-      const webAppUrl = urlParams.get('WEB_APP_URL');
-
-      if (!webAppUrl) {
-        alert("WEB_APP_URLパラメータが見つかりません");
-        return;
+      // 0.1秒間隔で5回スキャン
+      for (let i = 0; i < 5; i++) {
+        const result = await scanForNumbers();
+        if (result) {
+          playSound(); // 数字を検知するたびに音を鳴らす
+        }
+        scanResults.push(result);
+        await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒待機
       }
 
-      // Fetch APIを使用してデータを送信
-      fetch(webAppUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.json())
-      .then(responseData => console.log("送信成功:", responseData))
-      .catch(error => console.error("送信エラー:", error));
+      // ScanBarを緑色に戻す
+      scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
+
+      // 5回のスキャン結果がすべて同じ場合のみ記録
+      if (scanResults.every(result => result === scanResults[0] && result !== null)) {
+        const number = scanResults[0];
+        if (!detectedNumbers.has(number)) { // 重複していない場合のみ記録
+          const name = nameInput.value.trim();
+          const room = roomInput.value.trim();
+          if (!name || !room) {
+            alert("氏名と部屋名を入力してください。");
+            return;
+          }
+
+          // 氏名と部屋名をlocalStorageに保存
+          localStorage.setItem('name', name);
+          localStorage.setItem('room', room);
+
+          const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${number}`;
+          detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
+          output.textContent += entry + '\n'; // 情報を追記
+          localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
+          showAnimation(); // アニメーションを表示
+        }
+      }
+    }
+
+    async function scanForNumbers() {
+      const imageData = canvas.toDataURL('image/png');
+
+      // Tesseract.jsを使用してOCRを実行
+      const result = await Tesseract.recognize(imageData, 'eng', {
+        tessedit_char_whitelist: '0123456789', // 数字のみを抽出
+      });
+
+      // 認識されたテキストから11桁の数字を抽出
+      const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
+      return matchedNumbers ? matchedNumbers[0] : null; // 最初の11桁の数字を返す
+    }
+
+    function playSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine'; // 波形の種類（sine, square, triangle, sawtooth など）
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 周波数（Hz）
+      oscillator.connect(audioContext.destination);
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+      }, 200); // 200ms間音を鳴らす
+    }
+
+    function showAnimation() {
+      let animationFrame = 0;
+      const maxFrames = 30; // アニメーションのフレーム数
+
+      function animate() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // アニメーションのエフェクト（円の拡大）
+        const radius = (animationFrame / maxFrames) * canvas.width * 0.5;
+        context.beginPath();
+        context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+        context.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+        context.lineWidth = 5;
+        context.stroke();
+
+        animationFrame++;
+        if (animationFrame < maxFrames) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      animate();
     }
 
     function clearNumbers() {
