@@ -254,7 +254,7 @@ async function scanForNumbers() {
   // 認識されたテキストから11桁の数字を抽出
   const matchedNumbers = result.data.text.match(/\b\d{11}\b/g);
   // 重複していない場合のみ返す
-  if (!detectedNumbers.has(matchedNumbers)) {
+  if (!detectedNumbers.has(matchedNumbers[0])) {
     return matchedNumbers[0]; // 最初の11桁の数字を返す
   }
   return null; // 数字が検知されなかった場合
