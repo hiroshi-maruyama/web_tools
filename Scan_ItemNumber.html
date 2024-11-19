@@ -69,6 +69,23 @@
       margin-top: 20px;
       white-space: pre-line; /* 改行を維持 */
     }
+    #toast-container {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .toast {
+        background-color: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        opacity: 1;
+        transition: opacity 0.5s;
+    }
   </style>
 </head>
 <body>
@@ -83,6 +100,7 @@
     <div id="scannerBar"></div>
   </div>
   <div id="output"></div>
+  <div id="toast-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
@@ -143,6 +161,7 @@
 
         // 1秒ごとにOCR処理を実行
         setInterval(async () => {
+          showToast('1秒ごとにOCR処理を実行');
           const number = await scanForNumbers();
           if (number) {
             // 数字が検知された場合にのみ0.1秒間隔で5回スキャンを実行
@@ -154,8 +173,9 @@
       }
     }
 
-    let is_Scanning = false;
+let is_Scanning = false;
 async function performMultiScan(initialNumber) {
+  showToast('performMultiScan : ' + is_Scanning);
   if(is_Scanning){ return; }
   is_Scanning = true;
   
@@ -353,6 +373,23 @@ function getFormattedDateInJST() {
 
   return `${year}-${month}-${day}`;
 }
+
+       function showToast(message) {
+            const toastContainer = document.getElementById('toast-container');
+
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            toast.textContent = message;
+
+            toastContainer.insertBefore(toast, toastContainer.firstChild);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.addEventListener('transitionend', () => {
+                    toast.remove();
+                });
+            }, 500);
+        }
   </script>
 </body>
 </html>
