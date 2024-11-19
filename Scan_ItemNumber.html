@@ -322,7 +322,7 @@ function sendToSpreadsheet() {
   })
   .catch(error => {
     console.error("送信エラー:", error);
-    alert("データの送信中にエラーが発生しました");
+    alert("データの送信中にエラーが発生しました:" + error);
   });
 }
 function getFormattedDateInJST() {
