@@ -179,10 +179,6 @@ async function performMultiScan(initialNumber) {
         return;
       }
 
-      // 氏名と部屋名をlocalStorageに保存
-      localStorage.setItem('name', name);
-      localStorage.setItem('room', room);
-
       const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${number}`;
       detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
       output.textContent += entry + '\n'; // 情報を追記
@@ -253,6 +249,15 @@ async function scanForNumbers() {
         output.textContent = ''; // 表示をクリア
       }
     }
+    
+// 氏名と部屋名の入力が変更されたときにlocalStorageに保存
+nameInput.addEventListener('input', () => {
+  localStorage.setItem('name', nameInput.value.trim());
+});
+
+roomInput.addEventListener('input', () => {
+  localStorage.setItem('room', roomInput.value.trim());
+});
   </script>
 </body>
 </html>
