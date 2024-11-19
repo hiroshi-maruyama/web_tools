@@ -251,11 +251,11 @@ async function scanForNumbers() {
     }
     
 // 氏名と部屋名の入力が変更されたときにlocalStorageに保存
-nameInput.addEventListener('input', () => {
+nameInput.addEventListener('change', () => {
   localStorage.setItem('name', nameInput.value.trim());
 });
 
-roomInput.addEventListener('input', () => {
+roomInput.addEventListener('change', () => {
   localStorage.setItem('room', roomInput.value.trim());
 });
   </script>
