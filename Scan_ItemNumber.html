@@ -244,6 +244,7 @@ async function performMultiScan(initialNumber) {
 }
 
 async function scanForNumbers() {
+  showToast('scanForNumbers()');
   const imageData = canvas.toDataURL('image/png');
 
   // Tesseract.jsを使用してOCRを実行
