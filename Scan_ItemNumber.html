@@ -153,25 +153,47 @@
     }
 
 async function performMultiScan(initialNumber) {
-  const scanResults = [initialNumber];
+  const scanResults = [];
 
   // ScanBarを赤色に変更
   scannerBar.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
 
-  // 0.1秒間隔でさらに4回スキャン（合計5回）
-  for (let i = 0; i < 4; i++) {
+  // 0.1秒間隔で10回スキャン
+  let attempts = 0;
+  while (scanResults.length < 10 && attempts < 20) { // 最大20回試行して10回のスキャンを完了する
     const result = await scanForNumbers();
-    scanResults.push(result);
+    if (result) {
+      scanResults.push(result); // 11桁の数字を検出した場合のみ追加
+      playSound(); // 数字を検知するたびに音を鳴らす
+    }
+    attempts++;
     await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒待機
   }
 
   // ScanBarを緑色に戻す
   scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
 
-  // 5回のスキャン結果がすべて同じ場合のみ記録
-  if (scanResults.every(result => result === scanResults[0] && result !== null)) {
-    const number = scanResults[0];
-    if (!detectedNumbers.has(number)) { // 重複していない場合のみ記録
+  if (scanResults.length < 10) {
+    console.log("十分なスキャン結果が得られませんでした。");
+    return;
+  }
+
+  // 最も頻出する番号を探し、その出現回数を数える
+  const counts = scanResults.reduce((acc, number) => {
+    if (number) {
+      acc[number] = (acc[number] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  const [mostFrequentNumber, count] = Object.entries(counts).reduce(
+    (max, entry) => (entry[1] > max[1] ? entry : max),
+    [null, 0]
+  );
+
+  // 6回以上同じ番号が検出された場合のみ記録
+  if (count >= 6 && mostFrequentNumber) {
+    if (!detectedNumbers.has(mostFrequentNumber)) { // 重複していない場合のみ記録
       const name = nameInput.value.trim();
       const room = roomInput.value.trim();
       if (!name || !room) {
@@ -179,7 +201,11 @@ async function performMultiScan(initialNumber) {
         return;
       }
 
-      const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${number}`;
+      // 氏名と部屋名をlocalStorageに保存
+      localStorage.setItem('name', name);
+      localStorage.setItem('room', room);
+
+      const entry = `氏名: ${name}, 部屋名: ${room}, 番号: ${mostFrequentNumber}`;
       detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
       output.textContent += entry + '\n'; // 情報を追記
       localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
