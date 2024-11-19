@@ -160,7 +160,7 @@ async function performMultiScan(initialNumber) {
 
   // 0.1秒間隔で10回スキャン
   let attempts = 0;
-  while (scanResults.length < 10 && attempts < 20) { // 最大20回試行して10回のスキャンを完了する
+  while (scanResults.length < 5 && attempts < 20) { // 最大20回試行して10回のスキャンを完了する
     const result = await scanForNumbers();
     if (result) {
       scanResults.push(result); // 11桁の数字を検出した場合のみ追加
@@ -173,7 +173,7 @@ async function performMultiScan(initialNumber) {
   // ScanBarを緑色に戻す
   scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
 
-  if (scanResults.length < 10) {
+  if (scanResults.length < 5) {
     console.log("十分なスキャン結果が得られませんでした。");
     return;
   }
@@ -192,7 +192,7 @@ async function performMultiScan(initialNumber) {
   );
 
   // 6回以上同じ番号が検出された場合のみ記録
-  if (count >= 6 && mostFrequentNumber) {
+  if (count >= 3 && mostFrequentNumber) {
     if (!detectedNumbers.has(mostFrequentNumber)) { // 重複していない場合のみ記録
       const name = nameInput.value.trim();
       const room = roomInput.value.trim();
