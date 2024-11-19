@@ -86,8 +86,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
   <script>
-    const storedData = JSON.parse(localStorage.getItem('storedData')) || [];
-    const detectedNumbers = new Set(storedData.map(item => item.number));
+    let storedData = JSON.parse(localStorage.getItem('storedData')) || [];
+    let detectedNumbers = new Set(storedData.map(item => item.number));
     
     const output = document.getElementById('output');
     const scannerBar = document.getElementById('scannerBar');
@@ -280,7 +280,8 @@ async function scanForNumbers() {
 
     function clearNumbers() {
       if (confirm("本当にすべての番号をクリアしますか？")) {
-        storedData.clear(); // Setをクリア
+        storedData = [];
+        detectedNumbers.clear();
         localStorage.removeItem('storedData'); // localStorageから削除
         output.textContent = ''; // 表示をクリア
       }
