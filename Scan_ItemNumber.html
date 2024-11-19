@@ -152,7 +152,11 @@
       }
     }
 
+    let is_Scanning = false;
 async function performMultiScan(initialNumber) {
+  if(is_Scanning){ return; }
+  is_Scanning = true;
+  
   const scanResults = [];
 
   // ScanBarを赤色に変更
@@ -160,11 +164,11 @@ async function performMultiScan(initialNumber) {
 
   // 0.1秒間隔で10回スキャン
   let attempts = 0;
-  while (scanResults.length < 5 && attempts < 20) { // 最大20回試行して10回のスキャンを完了する
+  while (scanResults.length < 5 && attempts < 10) { // 最大20回試行して10回のスキャンを完了する
     const result = await scanForNumbers();
     if (result) {
       scanResults.push(result); // 11桁の数字を検出した場合のみ追加
-      playSound(); // 数字を検知するたびに音を鳴らす
+      showAnimation(); // アニメーションを表示
     }
     attempts++;
     await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒待機
@@ -174,7 +178,8 @@ async function performMultiScan(initialNumber) {
   scannerBar.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
 
   if (scanResults.length < 5) {
-    console.log("十分なスキャン結果が得られませんでした。");
+    alert("十分なスキャン結果が得られませんでした。");
+    is_Scanning = false;
     return;
   }
 
@@ -198,6 +203,7 @@ async function performMultiScan(initialNumber) {
       const room = roomInput.value.trim();
       if (!name || !room) {
         alert("氏名と部屋名を入力してください。");
+        is_Scanning = false;
         return;
       }
 
@@ -209,9 +215,12 @@ async function performMultiScan(initialNumber) {
       detectedNumbers.add(entry); // 氏名、部屋名、番号をセットに追加
       output.textContent += entry + '\n'; // 情報を追記
       localStorage.setItem('detectedNumbers', JSON.stringify([...detectedNumbers])); // localStorageに保存
-      showAnimation(); // アニメーションを表示
+      playSound(); // 音を鳴らす
     }
   }
+
+  is_Scanning = false;
+  alert("スキャン結果がバラバラでした。");
 }
 
 async function scanForNumbers() {
