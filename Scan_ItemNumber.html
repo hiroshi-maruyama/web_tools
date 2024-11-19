@@ -306,16 +306,17 @@ function sendToSpreadsheet() {
     alert("WEB_APP_URLパラメータが見つかりません");
     return;
   }
-  alert(webAppUrl);
+
+ var postparam = 
+       {
+         "method"     : "POST",
+         "mode"       : "no-cors",
+         "Content-Type" : "application/x-www-form-urlencoded",
+         "body" : JSON.stringify(data)
+       };
 
   // Fetch APIを使用してデータを送信
-  fetch(webAppUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  })
+  fetch(webAppUrl, postparam)
   .then(response => response.json())
   .then(responseData => {
     console.log("送信成功:", responseData);
