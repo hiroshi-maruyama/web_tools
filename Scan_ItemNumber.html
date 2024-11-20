@@ -116,8 +116,8 @@
     context.scale(SCALE, SCALE);
 
     // 氏名と部屋名をlocalStorageから読み込む
-    nameInput.value = localStorage.getItem('name') || '';
-    roomInput.value = localStorage.getItem('room') || '';
+    nameInput.value = localStorage.getItem('name') || '不明';
+    roomInput.value = localStorage.getItem('room') || '不明';
 
     // 初期表示でlocalStorageから番号を読み込む
     storedData.forEach(entry => {
@@ -223,12 +223,8 @@ async function performMultiScan(initialNumber) {
 
   // 6回以上同じ番号が検出された場合のみ記録
   if (count >= 3 && mostFrequentNumber) {
-    const name = nameInput.value.trim();
-    const room = roomInput.value.trim();
-    if (!name || !room) {
-      alert("氏名と部屋名を入力してください。");
-      return;
-    }
+    const name = nameInput.value.trim() || "不明";
+    const room = roomInput.value.trim() || "不明";
 
     // 氏名と部屋名をlocalStorageに保存
     localStorage.setItem('name', name);
